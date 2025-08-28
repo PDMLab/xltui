@@ -16,6 +16,8 @@ public static class Program
       cfg.AddCommand<RenderCommand>("render")
         .WithDescription("Render an Excel sheet to a console document")
         .WithExample(["render", "--file", "sample.xlsx"])
+        .WithExample(["render", "--file", "sample.xlsx", "--json"])
+        .WithExample(["render", "--file", "sample.xlsx", "--json", "--columns", "Name,Email"])
         .WithExample(["render", "--file", "sample.xlsx", "--sheet", "People", "--style", "table"])
         .WithExample(
           [

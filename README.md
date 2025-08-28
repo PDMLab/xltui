@@ -37,6 +37,7 @@ The `--json` option can be useful if you want to process the data e.g. using `jq
 xltui render --file HelloWorld.xlsx --json --columns Amount | jq -c '[ .[] | .[] | to_entries[] | (.value // "") | tostring ]' 
 ```
 
+## Installing
 
-
+You can download the binaries from the [Releases](https://github.com/PDMLab/xltui/releases) or you can get the `.deb` files from [here](https://github.com/dariogriffo/xltui-debian/releases). Thank you @dariogriffo for creating and hosting the debs!
 

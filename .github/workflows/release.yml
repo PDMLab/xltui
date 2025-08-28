@@ -1,0 +1,89 @@
+name: Build and Release xltui (Linux)
+
+on:
+  push:
+    tags:
+      - "v*"     # Trigger when pushing tags like v1.0.0
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        rid: [linux-x64, linux-arm64]   # Build for both x64 and ARM64
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      # Discover project file (adjust if your repo has multiple .csproj files)
+      - name: Discover project
+        id: proj
+        shell: bash
+        run: |
+          set -euo pipefail
+          PROJECT_PATH="$(git ls-files '*.csproj' | head -n 1)"
+          if [[ -z "$PROJECT_PATH" ]]; then
+            echo "No .csproj found" >&2
+            exit 1
+          fi
+          echo "project=$PROJECT_PATH" >> "$GITHUB_OUTPUT"
+
+      - name: Restore
+        run: dotnet restore "${{ steps.proj.outputs.project }}"
+
+      # Build a self-contained, single-file executable
+      - name: Publish (self-contained single file)
+        run: |
+          dotnet publish "${{ steps.proj.outputs.project }}" \
+            -c Release \
+            -r ${{ matrix.rid }} \
+            --self-contained true \
+            -p:PublishSingleFile=true \
+            -p:PublishTrimmed=true \
+            -p:AssemblyName=xltui \
+            -o "out/${{ matrix.rid }}"
+
+      # Make sure the binary is executable
+      - name: Make executable (chmod)
+        run: chmod +x "out/${{ matrix.rid }}/xltui"
+
+      # Create a compressed tarball for distribution
+      - name: Create archive
+        env:
+          TAG_NAME: ${{ github.ref_name }}   # Example: v1.2.3
+        run: |
+          mkdir -p dist
+          tar -C "out/${{ matrix.rid }}" -czf "dist/xltui-${TAG_NAME}-${{ matrix.rid }}.tar.gz" xltui
+
+      # Upload build artifacts to the workflow (for debugging or later steps)
+      - name: Upload artifact (workflow)
+        uses: actions/upload-artifact@v4
+        with:
+          name: xltui-${{ matrix.rid }}
+          path: dist/*.tar.gz
+
+  release:
+    needs: build-linux
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./collected
+
+      # Publish the tarballs as release assets on GitHub
+      - name: Publish GitHub Release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            collected/**/xltui-*.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+

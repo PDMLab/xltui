@@ -39,5 +39,5 @@ xltui render --file HelloWorld.xlsx --json --columns Amount | jq -c '[ .[] | .[]
 
 ## Installing
 
-You can download the binaries from the [Releases](https://github.com/PDMLab/xltui/releases) or you can get the `.deb` files from [here](https://github.com/dariogriffo/xltui-debian/releases). Thank you @dariogriffo for creating and hosting the debs!
+You can download the binaries from the [Releases](https://github.com/PDMLab/xltui/releases) or you can get the `.deb` files from [here](https://github.com/dariogriffo/xltui-debian/releases). Thank you [@dariogriffo](https://github.com/dariogriffo) for creating and hosting the debs!
 

@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using ClosedXML.Excel;
 using Spectre.Console;
 using Spectre.Console.Cli;
@@ -67,6 +67,9 @@ public class RenderSettings : CommandSettings
 
   [CommandOption("--max-rows <N>")]
   public int? MaxRows { get; set; }
+
+  [CommandOption("--json")]
+  public bool Json { get; set; }
 }
 
 public class RenderCommand : Command<RenderSettings>
@@ -76,7 +79,15 @@ public class RenderCommand : Command<RenderSettings>
     // Load workbook/sheet
     if (!File.Exists(settings.FilePath))
     {
-      AnsiConsole.MarkupLine($"[red]File not found:[/] {settings.FilePath}");
+      // If JSON output requested, write plain error to stderr without ANSI
+      if (settings.Json)
+      {
+        Console.Error.WriteLine($"File not found: {settings.FilePath}");
+      }
+      else
+      {
+        AnsiConsole.MarkupLine($"[red]File not found:[/] {settings.FilePath}");
+      }
       return -1;
     }
 
@@ -84,7 +95,10 @@ public class RenderCommand : Command<RenderSettings>
     var ws = ResolveWorksheet(book, settings.SheetName, settings.SheetIndex);
     if (ws is null)
     {
-      AnsiConsole.MarkupLine("[red]Worksheet not found.[/]");
+      if (settings.Json)
+        Console.Error.WriteLine("Worksheet not found.");
+      else
+        AnsiConsole.MarkupLine("[red]Worksheet not found.[/]");
       return -1;
     }
 
@@ -106,16 +120,51 @@ public class RenderCommand : Command<RenderSettings>
     // Title
     var title = settings.Title ?? $"{Path.GetFileName(settings.FilePath)} — {ws.Name}";
 
-    // Render
-    var ctx = new RenderContext(title);
-    IRenderer renderer = settings.Style.ToLowerInvariant() switch
+    // Render or JSON
+    if (settings.Json)
     {
-      "panel" => new PanelRenderer(),
-      "tree" => new TreeRenderer(settings.GroupBy),
-      _ => new TableRenderer(), // default
-    };
+      var outObj = new Dictionary<string, List<Dictionary<string, object?>>>(
+        StringComparer.OrdinalIgnoreCase
+      );
+      var rows = data
+        .Rows.Select(r =>
+        {
+          var d = new Dictionary<string, object?>();
+          foreach (var h in data.Headers)
+          {
+            var v = r.GetValueOrDefault(h, "");
+            d[h] = string.IsNullOrEmpty(v) ? null : (object)v;
+          }
+          return d;
+        })
+        .ToList();
+      outObj[data.SheetName] = rows;
+      var json = System.Text.Json.JsonSerializer.Serialize(
+        outObj,
+        new System.Text.Json.JsonSerializerOptions { WriteIndented = true }
+      );
+      Console.WriteLine(json);
+      return 0;
+    }
 
-    renderer.Render(data, ctx);
+    // If JSON modes are not set, render using Spectre.Console. Otherwise output JSON without ANSI.
+    if (!settings.Json)
+    {
+      var ctx = new RenderContext(title);
+      IRenderer renderer = settings.Style.ToLowerInvariant() switch
+      {
+        "panel" => new PanelRenderer(),
+        "tree" => new TreeRenderer(settings.GroupBy),
+        _ => new TableRenderer(), // default
+      };
+
+      renderer.Render(data, ctx);
+    }
+    else
+    {
+      // already handled above
+    }
+
     return 0;
   }
 

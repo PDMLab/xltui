@@ -22,12 +22,12 @@ Open a `.xlsx` file and render it as a tree.
 More options:
 
 ```bash
-xltui render --file sample.xlsx
-xltui render --file sample.xlsx --sheet People --style table
-xltui render --file sample.xlsx --sheet People --style tree --group-by Department
-xltui render --file sample.xlsx --sheet-index 1 --columns Name,Email,Dept
-xltui render --file sample.xlsx --json
-xltui render --file sample.xslx --json --columns Name,Email
+XlTui render --file sample.xlsx
+XlTui render --file sample.xlsx --sheet People --style table
+XlTui render --file sample.xlsx --sheet People --style tree --group-by Department
+XlTui render --file sample.xlsx --sheet-index 1 --columns Name,Email,Dept
+XlTui render --file sample.xlsx --json
+XlTui render --file sample.xslx --json --columns Name,Email
 ```
 
 The `--json` option can be useful if you want to process the data e.g. using `jq`:

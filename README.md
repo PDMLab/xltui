@@ -22,19 +22,19 @@ Open a `.xlsx` file and render it as a tree.
 More options:
 
 ```bash
-XlTui render --file sample.xlsx
-XlTui render --file sample.xlsx --sheet People --style table
-XlTui render --file sample.xlsx --sheet People --style tree --group-by Department
-XlTui render --file sample.xlsx --sheet-index 1 --columns Name,Email,Dept
-XlTui render --file sample.xlsx --json
-XlTui render --file sample.xslx --json --columns Name,Email
+xltui render --file sample.xlsx
+xltui render --file sample.xlsx --sheet People --style table
+xltui render --file sample.xlsx --sheet People --style tree --group-by Department
+xltui render --file sample.xlsx --sheet-index 1 --columns Name,Email,Dept
+xltui render --file sample.xlsx --json
+xltui render --file sample.xslx --json --columns Name,Email
 ```
 
 The `--json` option can be useful if you want to process the data e.g. using `jq`:
 
 ```bash
 # this will export a single column "Amount" and jq will transform the array to an array of strings:
-XlTui render --file HelloWorld.xlsx --json --columns Amount | jq -c '[ .[] | .[] | to_entries[] | (.value // "") | tostring ]' 
+xltui render --file HelloWorld.xlsx --json --columns Amount | jq -c '[ .[] | .[] | to_entries[] | (.value // "") | tostring ]' 
 ```
 
 

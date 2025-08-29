@@ -1,4 +1,6 @@
 using System.Globalization;
+using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 using ClosedXML.Excel;
 using Spectre.Console;
 using Spectre.Console.Cli;
@@ -141,10 +143,9 @@ public class RenderCommand : Command<RenderSettings>
         })
         .ToList();
       outObj[data.SheetName] = rows;
-      var json = System.Text.Json.JsonSerializer.Serialize(
-        outObj,
-        new System.Text.Json.JsonSerializerOptions { WriteIndented = true }
-      );
+      // Use source-gen-safe API: create minimal JsonSerializerContext
+      var ctx = new XltuiJsonContext(new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+      var json = System.Text.Json.JsonSerializer.Serialize<object>(outObj, ctx.GetTypeInfo(typeof(object)) as System.Text.Json.Serialization.Metadata.JsonTypeInfo<object>);
       Console.WriteLine(json);
       return 0;
     }

@@ -41,3 +41,8 @@ xltui render --file HelloWorld.xlsx --json --columns Amount | jq -c '[ .[] | .[]
 
 You can download the binaries from the [Releases](https://github.com/PDMLab/xltui/releases) or you can get the `.deb` files from [here](https://github.com/dariogriffo/xltui-debian/releases). Thank you [@dariogriffo](https://github.com/dariogriffo) for creating and hosting the debs!
 
+### Installing / updating on Ubuntu
+
+```bash
+json=$(curl -s https://api.github.com/repos/PDMLab/xltui/releases/latest) && tag=$(echo "$json" | grep -m1 '"tag_name":' | cut -d '"' -f4) && echo "Installing xltui $tag..." && url=$(echo "$json" | grep "browser_download_url" | grep "linux-x64.*tar.gz" | cut -d '"' -f4) && [ -n "$url" ] && curl -L "$url" | tar -xz && mkdir -p ~/.local/bin && mv xltui ~/.local/bin/ && echo "xltui $tag installed to ~/.local/bin"
+```
